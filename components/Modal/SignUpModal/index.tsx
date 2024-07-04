@@ -15,8 +15,9 @@ import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
 import { format, getDaysInMonth, isValid, parse, subYears } from 'date-fns';
 import { useMutation } from '@tanstack/react-query';
-import { createUserWithEmailAndPassword } from '@firebase/auth';
-import { auth } from '@/firebase';
+import { createUserWithEmailAndPassword, User } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, firestore } from '@/lib/firebase'; // Updated import
 
 type SignUpModalProps = {
   opened: boolean;
@@ -48,6 +49,16 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     })
   );
 
+  const saveUserToFirestore = async (user: User, values: SignUpFormValues) => {
+    const userRef = doc(firestore, 'users', user.uid);
+    await setDoc(userRef, {
+      email: values.email,
+      dateOfBirth: `${values.year}-${values.month.padStart(2, '0')}-${values.day.padStart(2, '0')}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
   const {
     mutateAsync: signUp,
     isPending,
@@ -55,7 +66,12 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     isError,
   } = useMutation({
     mutationFn: async (values: SignUpFormValues) => {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      await saveUserToFirestore(userCredential.user, values);
     },
   });
 
@@ -80,12 +96,10 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
         Array.from({ length: daysInMonth }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` }))
       );
 
-      // Reset day if it's greater than the number of days in the new month
       if (parseInt(form.values.day, 10) > daysInMonth) {
         form.setFieldError('day', 'Invalid date');
       }
     } else {
-      // If month or year is not set, reset days to a full month
       setDays(Array.from({ length: 31 }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` })));
     }
   }, [month, year]);
@@ -105,8 +119,12 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
       return;
     }
 
-    await signUp(values);
-    close();
+    try {
+      await signUp(values);
+      handleClose();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleClose = () => {
