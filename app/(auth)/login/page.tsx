@@ -1,6 +1,7 @@
 import { Button } from '@mantine/core';
 import WelcomeTwitter from '@/assets/svg/welcomeTwitter';
 import LoginForm from '@/app/(auth)/login/_components/LoginForm';
+import SignUpForm from '@/app/(auth)/login/_components/SignUpForm';
 
 type LoginPageProps = {};
 
@@ -24,9 +25,7 @@ const LoginPage = ({}: LoginPageProps) => (
             <div className="h-px border-b border-[#2f3336] grow" />
           </div>
 
-          <Button fullWidth type="submit" radius="xl" variant="outline">
-            Sign up
-          </Button>
+          <SignUpForm />
         </div>
       </div>
     </div>
