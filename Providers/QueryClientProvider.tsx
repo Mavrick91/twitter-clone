@@ -1,3 +1,5 @@
+'use client';
+
 import { QueryClient, QueryClientProvider as Provider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 

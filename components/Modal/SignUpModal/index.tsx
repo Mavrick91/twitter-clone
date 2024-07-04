@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
+  Alert,
   Button,
   Flex,
   Group,
@@ -14,6 +14,9 @@ import {
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
 import { format, getDaysInMonth, isValid, parse, subYears } from 'date-fns';
+import { useMutation } from '@tanstack/react-query';
+import { createUserWithEmailAndPassword } from '@firebase/auth';
+import { auth } from '@/firebase';
 
 type SignUpModalProps = {
   opened: boolean;
@@ -45,6 +48,17 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     })
   );
 
+  const {
+    mutateAsync: signUp,
+    isPending,
+    reset,
+    isError,
+  } = useMutation({
+    mutationFn: async (values: SignUpFormValues) => {
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+    },
+  });
+
   const form = useForm<SignUpFormValues>({
     initialValues: {
       email: '',
@@ -61,14 +75,13 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
 
   useEffect(() => {
     if (month && year) {
-      const daysInMonth = getDaysInMonth(new Date(parseInt(year), parseInt(month) - 1));
-      console.log('😀😀 daysInMonth ~ ', daysInMonth);
+      const daysInMonth = getDaysInMonth(new Date(parseInt(year, 10), parseInt(month, 10) - 1));
       setDays(
         Array.from({ length: daysInMonth }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` }))
       );
 
       // Reset day if it's greater than the number of days in the new month
-      if (parseInt(form.values.day) > daysInMonth) {
+      if (parseInt(form.values.day, 10) > daysInMonth) {
         form.setFieldError('day', 'Invalid date');
       }
     } else {
@@ -78,34 +91,34 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
   }, [month, year]);
 
   const handleSubmit = async (values: SignUpFormValues) => {
-    try {
-      const dateString = `${values.year}-${values.month.padStart(2, '0')}-${values.day.padStart(2, '0')}`;
-      const date = parse(dateString, 'yyyy-MM-dd', new Date());
+    const dateString = `${values.year}-${values.month.padStart(2, '0')}-${values.day.padStart(2, '0')}`;
+    const date = parse(dateString, 'yyyy-MM-dd', new Date());
 
-      if (!isValid(date)) {
-        form.setFieldValue('day', '');
-        return;
-      }
-
-      const minimumAge = subYears(new Date(), 13);
-      if (date > minimumAge) {
-        form.setFieldError('year', 'You must be at least 13 years old to sign up');
-        return;
-      }
-
-      // Proceed with form submission
-      console.log('Form submitted:', values);
-      // await onSubmit(values);
-    } catch (error) {
-      console.error('Failed to submit form:', error);
+    if (!isValid(date)) {
+      form.setFieldValue('day', '');
+      return;
     }
+
+    const minimumAge = subYears(new Date(), 13);
+    if (date > minimumAge) {
+      form.setFieldError('year', 'You must be at least 13 years old to sign up');
+      return;
+    }
+
+    await signUp(values);
+    close();
+  };
+
+  const handleClose = () => {
+    form.reset();
+    reset();
+    close();
   };
 
   return (
     <Modal
       opened={opened}
-      onClose={close}
-      withCloseButton={false}
+      onClose={handleClose}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,
@@ -113,58 +126,63 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
       centered
       size="lg"
     >
-      <Box p="xl">
-        <div className="px-20">
-          <Title order={1} className="my-6 text-white">
-            Create your account
-          </Title>
-          <form onSubmit={form.onSubmit(handleSubmit)}>
-            <TextInput
-              autoFocus
-              placeholder="your-email@example.com"
-              size="xl"
-              {...form.getInputProps('email')}
-            />
-            <PasswordInput
-              size="xl"
-              placeholder="Your password"
-              mt="md"
-              {...form.getInputProps('password')}
-            />
-            <Text className="mt-6 text-white font-bold">Date of birth</Text>
-            <Text size="sm" className="mb-4">
-              This will not be shown publicly. Confirm your own age, even if this account is for a
-              business, a pet, or something else.
-            </Text>
-            <Flex gap="md" className="mb-40">
-              <Select
-                allowDeselect={false}
-                data={months}
-                placeholder="Month"
-                {...form.getInputProps('month')}
-              />
-              <Select
-                allowDeselect={false}
-                data={days}
-                placeholder="Day"
-                {...form.getInputProps('day')}
-              />
-              <Select
-                allowDeselect={false}
-                data={years}
-                placeholder="Year"
-                {...form.getInputProps('year')}
-              />
-            </Flex>
+      <div className="px-20">
+        <Title order={1} className="my-6 text-white">
+          Create your account
+        </Title>
 
-            <Group mt="lg" grow>
-              <Button type="submit" radius="xl" size="lg">
-                Sign up
-              </Button>
-            </Group>
-          </form>
-        </div>
-      </Box>
+        {isError && (
+          <Alert variant="light" color="red" className="mb-4">
+            This email is already associated with an account. Please try logging in instead.
+          </Alert>
+        )}
+
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <TextInput
+            autoFocus
+            placeholder="your-email@example.com"
+            size="xl"
+            {...form.getInputProps('email')}
+          />
+          <PasswordInput
+            size="xl"
+            placeholder="Your password"
+            mt="md"
+            {...form.getInputProps('password')}
+          />
+          <Text className="mt-6 text-white font-bold">Date of birth</Text>
+          <Text size="sm" className="mb-4">
+            This will not be shown publicly. Confirm your own age, even if this account is for a
+            business, a pet, or something else.
+          </Text>
+          <Flex gap="md" className="mb-24">
+            <Select
+              allowDeselect={false}
+              data={months}
+              placeholder="Month"
+              {...form.getInputProps('month')}
+            />
+            <Select
+              allowDeselect={false}
+              data={days}
+              placeholder="Day"
+              {...form.getInputProps('day')}
+            />
+            <Select
+              allowDeselect={false}
+              data={years}
+              placeholder="Year"
+              {...form.getInputProps('year')}
+            />
+          </Flex>
+
+          <Group mt="lg" grow>
+            <Button type="submit" radius="xl" size="lg" loading={isPending}>
+              Sign up
+            </Button>
+          </Group>
+        </form>
+      </div>
     </Modal>
   );
 };
