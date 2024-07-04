@@ -1,14 +1,11 @@
-import { Button } from '@mantine/core';
 import WelcomeTwitter from '@/assets/svg/welcomeTwitter';
 import LoginForm from '@/app/(auth)/login/_components/LoginForm';
 import SignUpForm from '@/app/(auth)/login/_components/SignUpForm';
 
-type LoginPageProps = {};
-
-const LoginPage = ({}: LoginPageProps) => (
+const LoginPage = () => (
   <main className="h-full flex bg-black">
     <div className="flex-1 flex-center">
-      <div className="text-white max-h-[45vw] flex-center w-full">
+      <div className="text-[#e7e9ea] max-h-[380px] h-1/2 self-center flex justify-center">
         <WelcomeTwitter />
       </div>
     </div>

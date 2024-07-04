@@ -176,7 +176,7 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
             />
           </Flex>
 
-          <Group mt="lg" grow>
+          <Group mt="lg" grow mb="lg">
             <Button type="submit" radius="xl" size="lg" loading={isPending}>
               Sign up
             </Button>
