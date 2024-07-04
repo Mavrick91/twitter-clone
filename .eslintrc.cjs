@@ -4,7 +4,7 @@ module.exports = {
   overrides: [
     {
       files: ['**/?(*.)+(spec|test).[jt]s?(x)'],
-      extends: ['plugin:testing-library/react'],
+      extends: ['plugin:testing-library/react', 'plugin:@tanstack/eslint-plugin-query/recommended'],
     },
   ],
   parserOptions: {
