@@ -13,6 +13,9 @@ type UserData = {
   email: string;
   dateOfBirth: string;
   createdAt: string;
+  firstName: string;
+  lastName: string;
+  username: string;
   // Add any other fields you store in Firestore
 };
 

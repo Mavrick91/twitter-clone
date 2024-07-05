@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Button,
-  Flex,
-  Group,
-  Modal,
-  PasswordInput,
-  Select,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
-import { useForm, zodResolver } from '@mantine/form';
+import React, { useState } from 'react';
+import { Alert, Button, Group, Modal, Title } from '@mantine/core';
+import { zodResolver } from '@mantine/form';
 import { z } from 'zod';
-import { format, getDaysInMonth, isValid, parse, subYears } from 'date-fns';
+import { isValid, parse, subYears } from 'date-fns';
 import { useMutation } from '@tanstack/react-query';
 import { createUserWithEmailAndPassword, User } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, firestore } from '@/lib/firebase'; // Updated import
+import { IconChevronLeft } from '@tabler/icons-react';
+import { auth, firestore } from '@/lib/firebase';
+import Step1 from '@/components/Modal/SignUpModal/Step1';
+import { SignupProvider, useSignupForm } from '@/components/Modal/SignUpModal/formContext';
+import Step2 from '@/components/Modal/SignUpModal/Step2';
+import { validateFormFields } from '@/utils/form';
 
 type SignUpModalProps = {
   opened: boolean;
@@ -30,29 +24,39 @@ const signUpSchema = z.object({
   month: z.string().min(1, 'Month is required'),
   day: z.string().min(1, 'Day is required'),
   year: z.string().min(1, 'Year is required'),
+  firstName: z
+    .string()
+    .max(50, 'First name must be 50 characters or less')
+    .refine((value) => value.trim().length > 0, 'First name is required')
+    .refine(
+      (value) => /^[a-zA-Z\s'-]*$/.test(value),
+      'First name can only contain letters, spaces, hyphens, and apostrophes'
+    ),
+  lastName: z
+    .string()
+    .max(50, 'Last name must be 50 characters or less')
+    .refine((value) => value.trim().length > 0, 'Last name is required')
+    .refine(
+      (value) => /^[a-zA-Z\s'-]*$/.test(value),
+      'Last name can only contain letters, spaces, hyphens, and apostrophes'
+    ),
+  username: z
+    .string()
+    .min(4, 'Username must be at least 4 characters long')
+    .max(15, 'Username must be 15 characters or less')
+    .refine((value) => value.trim().length > 0, 'Username is required')
+    .refine((value) => !/^\d+$/.test(value), 'Username cannot be entirely numeric'),
 });
 
-type SignUpFormValues = z.infer<typeof signUpSchema>;
+export type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 const SignUpModal = ({ opened, close }: SignUpModalProps) => {
-  const [months] = useState(() =>
-    Array.from({ length: 12 }, (_, i) => ({
-      value: `${i + 1}`,
-      label: format(new Date(2000, i, 1), 'MMMM'),
-    }))
-  );
-  const [days, setDays] = useState<{ value: string; label: string }[]>([]);
-  const [years] = useState(() =>
-    Array.from({ length: 100 }, (_, i) => {
-      const year = new Date().getFullYear() - i;
-      return { value: `${year}`, label: `${year}` };
-    })
-  );
+  const [currentStep, setCurrentStep] = useState(1);
 
   const saveUserToFirestore = async (user: User, values: SignUpFormValues) => {
     const userRef = doc(firestore, 'users', user.uid);
     await setDoc(userRef, {
-      email: values.email,
+      ...values,
       dateOfBirth: `${values.year}-${values.month.padStart(2, '0')}-${values.day.padStart(2, '0')}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -75,50 +79,28 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     },
   });
 
-  const form = useForm<SignUpFormValues>({
+  const form = useSignupForm({
     initialValues: {
       email: '',
       password: '',
       month: '',
       day: '',
       year: '',
+      firstName: '',
+      lastName: '',
+      username: '',
     },
     validate: zodResolver(signUpSchema),
-    validateInputOnChange: true,
   });
 
-  const { month, year } = form.values;
-
-  useEffect(() => {
-    if (month && year) {
-      const daysInMonth = getDaysInMonth(new Date(parseInt(year, 10), parseInt(month, 10) - 1));
-      setDays(
-        Array.from({ length: daysInMonth }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` }))
-      );
-
-      if (parseInt(form.values.day, 10) > daysInMonth) {
-        form.setFieldError('day', 'Invalid date');
-      }
-    } else {
-      setDays(Array.from({ length: 31 }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` })));
-    }
-  }, [month, year]);
+  const handleClose = () => {
+    form.reset();
+    reset();
+    setCurrentStep(1);
+    close();
+  };
 
   const handleSubmit = async (values: SignUpFormValues) => {
-    const dateString = `${values.year}-${values.month.padStart(2, '0')}-${values.day.padStart(2, '0')}`;
-    const date = parse(dateString, 'yyyy-MM-dd', new Date());
-
-    if (!isValid(date)) {
-      form.setFieldValue('day', '');
-      return;
-    }
-
-    const minimumAge = subYears(new Date(), 13);
-    if (date > minimumAge) {
-      form.setFieldError('year', 'You must be at least 13 years old to sign up');
-      return;
-    }
-
     try {
       await signUp(values);
       handleClose();
@@ -127,26 +109,57 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     }
   };
 
-  const handleClose = () => {
-    form.reset();
-    reset();
-    close();
+  const handleClickNext = async () => {
+    if (currentStep === 1) {
+      const fieldsToValidate = ['email', 'password', 'month', 'day', 'year'];
+      const hasErrors = await validateFormFields(form, fieldsToValidate);
+
+      const dateString = `${form.values.year}-${form.values.month.padStart(2, '0')}-${form.values.day.padStart(2, '0')}`;
+      const date = parse(dateString, 'yyyy-MM-dd', new Date());
+
+      if (!isValid(date)) {
+        form.setFieldValue('day', '');
+        return;
+      }
+
+      const minimumAge = subYears(new Date(), 13);
+      if (date > minimumAge) {
+        form.setFieldError('year', 'You must be at least 13 years old to sign up');
+        return;
+      }
+
+      if (!hasErrors) {
+        setCurrentStep(2);
+      }
+    } else if (currentStep === 2) {
+      form.onSubmit(handleSubmit)();
+    }
+  };
+
+  const handleClickPreviousStep = () => {
+    setCurrentStep(1);
   };
 
   return (
     <Modal
       opened={opened}
       onClose={handleClose}
-      withCloseButton={false}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,
       }}
       centered
       size="lg"
+      title={
+        currentStep === 2 && (
+          <button type="button" onClick={handleClickPreviousStep}>
+            <IconChevronLeft size={24} />
+          </button>
+        )
+      }
     >
       <div className="px-20">
-        <Title order={1} c="white" mb="xl" mt="xl">
+        <Title order={1} c="white" mb="xl">
           Create your account
         </Title>
 
@@ -156,53 +169,17 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
           </Alert>
         )}
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <TextInput
-            autoFocus
-            placeholder="your-email@example.com"
-            size="xl"
-            {...form.getInputProps('email')}
-          />
-          <PasswordInput
-            size="xl"
-            placeholder="Your password"
-            mt="md"
-            {...form.getInputProps('password')}
-          />
-          <Text mt="lg" c="white" className="text-white font-bold">
-            Date of birth
-          </Text>
-          <Text size="sm" mb="md">
-            This will not be shown publicly. Confirm your own age, even if this account is for a
-            business, a pet, or something else.
-          </Text>
-          <Flex gap="md" className="mb-24">
-            <Select
-              allowDeselect={false}
-              data={months}
-              placeholder="Month"
-              {...form.getInputProps('month')}
-            />
-            <Select
-              allowDeselect={false}
-              data={days}
-              placeholder="Day"
-              {...form.getInputProps('day')}
-            />
-            <Select
-              allowDeselect={false}
-              data={years}
-              placeholder="Year"
-              {...form.getInputProps('year')}
-            />
-          </Flex>
-
-          <Group mt="lg" grow mb="lg">
-            <Button type="submit" radius="xl" size="lg" loading={isPending}>
-              Sign up
-            </Button>
-          </Group>
-        </form>
+        <SignupProvider form={form}>
+          <form>
+            {currentStep === 1 && <Step1 />}
+            {currentStep === 2 && <Step2 />}
+            <Group mt="lg" grow mb="lg">
+              <Button onClick={handleClickNext} radius="xl" size="lg" loading={isPending}>
+                {currentStep === 1 ? 'Next' : 'Sign up'}
+              </Button>
+            </Group>
+          </form>
+        </SignupProvider>
       </div>
     </Modal>
   );

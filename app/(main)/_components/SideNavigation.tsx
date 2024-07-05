@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Avatar, Menu, Text } from '@mantine/core';
+import { Avatar, Button, Menu, Text } from '@mantine/core';
 import { GoHome } from 'react-icons/go';
 import { BiSearchAlt2 } from 'react-icons/bi';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
@@ -18,7 +18,7 @@ const navItems = [
 
 const SideNavigation = () => {
   const pathname = usePathname();
-  const { logout } = useUserInfo();
+  const { logout, userData } = useUserInfo();
 
   return (
     <div className="debug w-[275px] flex flex-col shrink-0">
@@ -50,12 +50,18 @@ const SideNavigation = () => {
 
           <Menu shadow="md" width={300}>
             <Menu.Target>
-              <button type="button" className="flex m-3 justify-between items-center">
+              <button className="flex m-3 justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <Avatar color="cyan" radius="xl">
-                    MK
+                  <Avatar color="cyan" radius="xl" size={40}>
+                    {userData?.firstName[0]}
+                    {userData?.lastName[0]}
                   </Avatar>
-                  <Text c="white">Martin Kingdom</Text>
+                  <div className="flex flex-col items-start">
+                    <Text c="white">
+                      {userData?.firstName} {userData?.lastName}
+                    </Text>
+                    <Text size="sm">@{userData?.username}</Text>
+                  </div>
                 </div>
                 <HiOutlineDotsHorizontal size={24} />
               </button>
@@ -64,7 +70,7 @@ const SideNavigation = () => {
             <Menu.Dropdown>
               <Menu.Label>
                 <Text className="font-bold" c="white" component="button" onClick={logout}>
-                  Log out @MartinKingdom
+                  Log out @{userData?.username}
                 </Text>
               </Menu.Label>
             </Menu.Dropdown>
