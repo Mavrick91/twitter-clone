@@ -2,14 +2,13 @@ import { Button, Menu, Text, useMantineTheme } from '@mantine/core';
 import React, { useState } from 'react';
 import {
   IconAt,
-  IconCertificate,
   IconUsers,
   IconWorld,
   // @ts-ignore
   TablerIconsProps,
 } from '@tabler/icons-react';
 
-type ReplyOption = 'everyone' | 'following' | 'verified' | 'mentioned';
+export type ReplyOption = 'following' | 'mentionedUsers' | undefined;
 
 interface ReplyPermissionsDropdownProps {
   onSelect: (option: ReplyOption) => void;
@@ -24,7 +23,7 @@ interface OptionType {
 
 const options: OptionType[] = [
   {
-    value: 'everyone',
+    value: undefined,
     label: 'Everyone',
     translation: 'Everyone can reply',
     Icon: IconWorld,
@@ -36,30 +35,33 @@ const options: OptionType[] = [
     Icon: IconUsers,
   },
   {
-    value: 'verified',
-    label: 'Verified accounts',
-    translation: 'Only Verified accounts can reply',
-    Icon: IconCertificate,
-  },
-  {
-    value: 'mentioned',
+    value: 'mentionedUsers',
     label: 'Only accounts you mention',
     translation: 'Only accounts you mention can reply',
     Icon: IconAt,
   },
 ];
 
-const ReplyPermissionsDropdown: React.FC<ReplyPermissionsDropdownProps> = ({ onSelect }) => {
+const ReplyPermissionsDropdown = ({ onSelect }: ReplyPermissionsDropdownProps) => {
   const theme = useMantineTheme();
   const [selected, setSelected] = useState<OptionType>(options[0]);
+  const [opened, setOpened] = useState(false);
 
   const handleSelect = (option: OptionType) => {
     setSelected(option);
     onSelect(option.value);
+    setOpened(false);
   };
 
   return (
-    <Menu shadow="md" width={300} offset={-3} position="bottom-start">
+    <Menu
+      shadow="md"
+      width={300}
+      offset={-3}
+      opened={opened}
+      onChange={setOpened}
+      position="bottom-start"
+    >
       <Menu.Target>
         <div className="border-b border-separator pb-2 mb-3">
           <Button

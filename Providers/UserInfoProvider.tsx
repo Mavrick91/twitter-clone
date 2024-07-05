@@ -1,28 +1,15 @@
 'use client';
 
-import { onAuthStateChanged, signOut, User } from '@firebase/auth';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { LoadingOverlay } from '@mantine/core';
 import { usePathname, useRouter } from 'next/navigation';
-import { getDoc } from '@firebase/firestore';
-import { doc } from 'firebase/firestore';
-import { auth, firestore } from '@/lib/firebase';
-
-type UserData = {
-  email: string;
-  dateOfBirth: string;
-  createdAt: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  // Add any other fields you store in Firestore
-};
+import { getUserData, isAuthenticated, logout } from '@/actions/auth';
+import { TwitterUserData } from '@/types/user';
 
 type UserInfo = {
-  user: User | null;
-  userData: UserData | null;
-  logout?: () => void;
+  user: TwitterUserData | null;
+  logout?: () => Promise<void>;
 };
 
 const UserInfoContext = createContext<UserInfo | undefined>(undefined);
@@ -32,31 +19,30 @@ type UserInfoProviderProps = {
 };
 
 const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
-  const [userInfo, setUserInfo] = useState<UserInfo>({ user: null, userData: null });
+  const [userInfo, setUserInfo] = useState<UserInfo>({ user: null });
   const [visible, { toggle }] = useDisclosure(true);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as UserData;
-            setUserInfo({ user: currentUser, userData });
-          } else {
-            setUserInfo({ user: currentUser, userData: null });
-          }
-        } catch (error) {
-          setUserInfo({ user: currentUser, userData: null });
+    const checkAuth = async () => {
+      try {
+        const isAuth = await isAuthenticated();
+        if (isAuth) {
+          const userData = await getUserData();
+          console.log('😀😀 userData ~ ', userData);
+          setUserInfo({ user: userData });
+        } else {
+          setUserInfo({ user: null });
         }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setUserInfo({ user: null });
       }
-
       toggle();
-    });
+    };
 
-    return () => unsubscribe();
+    checkAuth();
   }, []);
 
   useEffect(() => {
@@ -70,14 +56,14 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
   }, [userInfo, visible, pathname]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    setUserInfo({ user: null, userData: null });
+    await logout();
+    setUserInfo({ user: null });
     router.push('/login');
   };
 
   if (visible) {
     return (
-      <div className=" fixedinset-x-0 inset-y-0">
+      <div className="fixed inset-x-0 inset-y-0">
         <LoadingOverlay visible={visible} zIndex={1000} />
       </div>
     );

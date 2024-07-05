@@ -16,7 +16,7 @@ export async function initiateTwitterAuth() {
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('client_id', process.env.TWITTER_CLIENT_ID!);
   authUrl.searchParams.append('redirect_uri', 'http://localhost:3000/api/auth/callback/twitter');
-  authUrl.searchParams.append('scope', 'tweet.read users.read offline.access');
+  authUrl.searchParams.append('scope', 'tweet.read tweet.write users.read offline.access');
   authUrl.searchParams.append('state', state);
   authUrl.searchParams.append('code_challenge', codeChallenge);
   authUrl.searchParams.append('code_challenge_method', 'S256');

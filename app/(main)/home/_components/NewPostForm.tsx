@@ -1,25 +1,50 @@
 import React from 'react';
 import { Button, Textarea } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useMutation } from '@tanstack/react-query';
+import { z } from 'zod';
 import UserAvatar from '@/components/UserAvatar';
 import CharacterCounter from '@/components/CharacterCounter';
-import ReplyPermissionsDropdown from '@/app/(main)/home/_components/ReplyPermissionsDropdown';
+import ReplyPermissionsDropdown, {
+  ReplyOption,
+} from '@/app/(main)/home/_components/ReplyPermissionsDropdown';
+import { createTweet } from '@/actions/tweet';
+import { TweetCreateRequest } from '@/types/tweet';
 
 const MAX_CHARACTERS = 280;
 
+const schema = z.object({
+  content: z.string(),
+  reply_settings: z.optional(z.union([z.literal('following'), z.literal('mentionedUsers')])),
+});
+
+type schemaType = z.infer<typeof schema>;
+
 const NewPostForm = () => {
-  const form = useForm({
+  const form = useForm<schemaType>({
     initialValues: {
       content: '',
+      reply_settings: undefined,
     },
     validate: {
       content: (value) => (!value ? 'Post content is required' : null),
     },
   });
 
-  const handleSubmit = form.onSubmit(() => {
-    form.reset();
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data: TweetCreateRequest) => createTweet(data),
+    onSuccess: () => {
+      form.setFieldValue('content', '');
+    },
   });
+
+  const handleSubmit = (values: schemaType) => {
+    const payload: TweetCreateRequest = {
+      text: values.content,
+      reply_settings: values.reply_settings,
+    };
+    mutate(payload);
+  };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.currentTarget;
@@ -28,8 +53,12 @@ const NewPostForm = () => {
     }
   };
 
+  const handlePermissionsChange = (value: ReplyOption) => {
+    form.setFieldValue('reply_settings', value);
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <div className="py-3 px-4 border-b border-separator">
         <div className="flex">
           <UserAvatar />
@@ -46,7 +75,7 @@ const NewPostForm = () => {
               error={form.errors.content}
             />
 
-            <ReplyPermissionsDropdown onSelect={(option) => console.log(option)} />
+            <ReplyPermissionsDropdown onSelect={handlePermissionsChange} />
 
             <div className="ml-auto flex items-center space-x-3">
               {!!form.values.content.length && (
@@ -58,6 +87,7 @@ const NewPostForm = () => {
               <Button
                 type="submit"
                 radius="xl"
+                loading={isPending}
                 disabled={!form.isValid() || form.values.content.length === 0}
               >
                 Post

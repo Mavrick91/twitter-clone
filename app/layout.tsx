@@ -1,8 +1,6 @@
 import '@mantine/core/styles.css';
 import './global.css';
 import React from 'react';
-import { ColorSchemeScript } from '@mantine/core';
-import { theme } from '@/theme';
 import QueryClientProvider from '@/Providers/QueryClientProvider';
 import UserInfoProvider from '@/Providers/UserInfoProvider';
 import MantineProvider from '@/Providers/MantineProvider';
