@@ -7,3 +7,11 @@
 html, body {
     height: 100vh;
 }
+
+:root[data-mantine-color-scheme="dark"] {
+    --mantine-color-body: #000;
+}
+
+.shiny-shadow {
+    box-shadow: rgba(255, 255, 255, 0.2) 0 0 15px, rgba(255, 255, 255, 0.15) 0 0 3px 1px;
+}

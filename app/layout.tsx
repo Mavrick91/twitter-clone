@@ -1,10 +1,11 @@
 import '@mantine/core/styles.css';
 import './global.css';
 import React from 'react';
-import { MantineProvider, ColorSchemeScript } from '@mantine/core';
+import { ColorSchemeScript } from '@mantine/core';
 import { theme } from '@/theme';
 import QueryClientProvider from '@/Providers/QueryClientProvider';
 import UserInfoProvider from '@/Providers/UserInfoProvider';
+import MantineProvider from '@/Providers/MantineProvider';
 
 export const metadata = {
   title: 'Mantine Next.js template',
@@ -15,7 +16,6 @@ export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en">
       <head>
-        <ColorSchemeScript />
         <link rel="shortcut icon" href="/favicon.svg" />
         <meta
           name="viewport"
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: any }) {
         />
       </head>
       <body>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
+        <MantineProvider>
           <QueryClientProvider>
             <UserInfoProvider>{children}</UserInfoProvider>
           </QueryClientProvider>

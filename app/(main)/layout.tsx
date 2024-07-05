@@ -5,7 +5,7 @@ type MainLayoutProps = {
 };
 
 const MainLayout = ({ children }: MainLayoutProps) => (
-  <div className="debug w-[1255px] mx-auto flex h-screen">
+  <div className="w-[1255px] mx-auto flex h-screen">
     <SideNavigation />
     {children}
   </div>

@@ -21,7 +21,7 @@ const SideNavigation = () => {
   const { logout, userData } = useUserInfo();
 
   return (
-    <div className="debug w-[275px] flex flex-col shrink-0">
+    <div className="w-[275px] flex flex-col shrink-0">
       <div className="h-full flex flex-col">
         <div className="size-8 m-3">
           <WelcomeTwitter />
@@ -48,9 +48,9 @@ const SideNavigation = () => {
             })}
           </div>
 
-          <Menu shadow="md" width={300}>
+          <Menu shadow="md" width={300} offset={10}>
             <Menu.Target>
-              <button className="flex m-3 justify-between items-center">
+              <button className="flex m-3 mb-6 justify-between items-center">
                 <div className="flex items-center gap-3">
                   <Avatar color="cyan" radius="xl" size={40}>
                     {userData?.firstName[0]}
@@ -60,14 +60,16 @@ const SideNavigation = () => {
                     <Text c="white">
                       {userData?.firstName} {userData?.lastName}
                     </Text>
-                    <Text size="sm">@{userData?.username}</Text>
+                    <Text size="sm" className="text-gray-400">
+                      @{userData?.username}
+                    </Text>
                   </div>
                 </div>
                 <HiOutlineDotsHorizontal size={24} />
               </button>
             </Menu.Target>
 
-            <Menu.Dropdown>
+            <Menu.Dropdown className="shiny-shadow border-none">
               <Menu.Label>
                 <Text className="font-bold" c="white" component="button" onClick={logout}>
                   Log out @{userData?.username}
