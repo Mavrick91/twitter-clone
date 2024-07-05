@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Avatar, Button, Menu, Text } from '@mantine/core';
+import { Menu, Text } from '@mantine/core';
 import { GoHome } from 'react-icons/go';
 import { BiSearchAlt2 } from 'react-icons/bi';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
@@ -10,6 +10,7 @@ import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import classNames from 'classnames';
 import WelcomeTwitter from '@/assets/svg/welcomeTwitter';
 import { useUserInfo } from '@/Providers/UserInfoProvider';
+import UserAvatar from '@/components/UserAvatar';
 
 const navItems = [
   { Icon: GoHome, label: 'Home', path: '/home' },
@@ -50,12 +51,9 @@ const SideNavigation = () => {
 
           <Menu shadow="md" width={300} offset={10}>
             <Menu.Target>
-              <button className="flex m-3 mb-6 justify-between items-center">
+              <button type="button" className="flex m-3 mb-6 justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <Avatar color="cyan" radius="xl" size={40}>
-                    {userData?.firstName[0]}
-                    {userData?.lastName[0]}
-                  </Avatar>
+                  <UserAvatar />
                   <div className="flex flex-col items-start">
                     <Text c="white">
                       {userData?.firstName} {userData?.lastName}
