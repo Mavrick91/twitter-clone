@@ -9,7 +9,12 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        separator: '#2f3336',
+        'home-tab': '#1d9bf0',
+      },
+    },
   },
   plugins: [
     plugin(function ({ addUtilities }) {
