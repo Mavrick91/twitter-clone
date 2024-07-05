@@ -137,6 +137,7 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
     <Modal
       opened={opened}
       onClose={handleClose}
+      withCloseButton={false}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,
@@ -145,12 +146,12 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
       size="lg"
     >
       <div className="px-20">
-        <Title order={1} className="my-6 text-white">
+        <Title order={1} c="white" mb="xl" mt="xl">
           Create your account
         </Title>
 
         {isError && (
-          <Alert variant="light" color="red" className="mb-4">
+          <Alert variant="filled" color="red" mb="lg">
             This email is already associated with an account. Please try logging in instead.
           </Alert>
         )}
@@ -168,8 +169,10 @@ const SignUpModal = ({ opened, close }: SignUpModalProps) => {
             mt="md"
             {...form.getInputProps('password')}
           />
-          <Text className="mt-6 text-white font-bold">Date of birth</Text>
-          <Text size="sm" className="mb-4">
+          <Text mt="lg" c="white" className="text-white font-bold">
+            Date of birth
+          </Text>
+          <Text size="sm" mb="md">
             This will not be shown publicly. Confirm your own age, even if this account is for a
             business, a pet, or something else.
           </Text>
