@@ -1,6 +1,6 @@
 'use client';
 
-import { onAuthStateChanged, User } from '@firebase/auth';
+import { onAuthStateChanged, signOut, User } from '@firebase/auth';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { LoadingOverlay } from '@mantine/core';
@@ -19,6 +19,7 @@ type UserData = {
 type UserInfo = {
   user: User | null;
   userData: UserData | null;
+  logout?: () => void;
 };
 
 const UserInfoContext = createContext<UserInfo | undefined>(undefined);
@@ -42,15 +43,13 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
             const userData = userDoc.data() as UserData;
             setUserInfo({ user: currentUser, userData });
           } else {
-            console.error('User document does not exist in Firestore');
             setUserInfo({ user: currentUser, userData: null });
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
           setUserInfo({ user: currentUser, userData: null });
         }
-      } else {
       }
+
       toggle();
     });
 
@@ -59,13 +58,19 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
 
   useEffect(() => {
     if (!visible) {
-      if (!userInfo.user && (pathname !== '/login' || pathname === '/')) {
+      if (!userInfo.user && pathname !== '/login') {
         router.push('/login');
       } else if (userInfo.user && (pathname === '/login' || pathname === '/')) {
         router.push('/home');
       }
     }
   }, [userInfo, visible, pathname]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUserInfo({ user: null, userData: null });
+    router.push('/login');
+  };
 
   if (visible) {
     return (
@@ -75,7 +80,11 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
     );
   }
 
-  return <UserInfoContext.Provider value={userInfo}>{children}</UserInfoContext.Provider>;
+  return (
+    <UserInfoContext.Provider value={{ ...userInfo, logout: handleLogout }}>
+      {children}
+    </UserInfoContext.Provider>
+  );
 };
 
 export const useUserInfo = () => {
