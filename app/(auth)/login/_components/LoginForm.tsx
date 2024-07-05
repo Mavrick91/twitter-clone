@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { useForm, zodResolver } from '@mantine/form';
-import { Button, TextInput, PasswordInput, Group, Box, Text } from '@mantine/core';
+import { Alert, Box, Button, Group, PasswordInput, TextInput } from '@mantine/core';
 import { z } from 'zod';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { useMutation } from '@tanstack/react-query';
+import { signInWithEmailAndPassword } from '@firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -22,9 +24,19 @@ const LoginForm = () => {
     validate: zodResolver(loginSchema),
   });
 
+  const {
+    mutateAsync: signIn,
+    isPending,
+    isError,
+  } = useMutation({
+    mutationFn: async (values: LoginFormValues) => {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+    },
+  });
+
   const handleSubmit = async (values: LoginFormValues) => {
     try {
-      // await onSubmit(values);
+      await signIn(values);
     } catch (error) {
       console.error('Failed to submit form:', error);
     }
@@ -33,6 +45,12 @@ const LoginForm = () => {
   return (
     <Box maw={400} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
+        {isError && (
+          <Alert variant="filled" color="red" mb="lg">
+            Password or email is incorrect
+          </Alert>
+        )}
+
         <TextInput
           label="Email"
           autoFocus
@@ -50,7 +68,7 @@ const LoginForm = () => {
         />
 
         <Group mt="lg" grow>
-          <Button type="submit" radius="xl">
+          <Button type="submit" radius="xl" loading={isPending}>
             Sign in
           </Button>
         </Group>
