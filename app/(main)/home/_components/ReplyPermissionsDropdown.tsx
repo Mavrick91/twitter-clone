@@ -97,7 +97,7 @@ const ReplyPermissionsDropdown: React.FC<ReplyPermissionsDropdownProps> = ({ onS
             type="button"
             key={option.value}
             onClick={() => handleSelect(option)}
-            className="hover:bg-[#16181C] w-full p-3"
+            className="hover:bg-[#16181C] rounded-xl w-full p-3"
           >
             <div className="flex items-center gap-3">
               <div

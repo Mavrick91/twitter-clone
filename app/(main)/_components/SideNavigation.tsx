@@ -19,7 +19,7 @@ const navItems = [
 
 const SideNavigation = () => {
   const pathname = usePathname();
-  const { logout, userData } = useUserInfo();
+  const { logout, user } = useUserInfo();
 
   return (
     <div className="w-[275px] flex flex-col shrink-0">
@@ -55,11 +55,9 @@ const SideNavigation = () => {
                 <div className="flex items-center gap-3">
                   <UserAvatar />
                   <div className="flex flex-col items-start">
-                    <Text c="white">
-                      {userData?.firstName} {userData?.lastName}
-                    </Text>
+                    <Text c="white">{user?.name}</Text>
                     <Text size="sm" className="text-gray-400">
-                      @{userData?.username}
+                      @{user?.username}
                     </Text>
                   </div>
                 </div>
@@ -70,7 +68,7 @@ const SideNavigation = () => {
             <Menu.Dropdown className="shiny-shadow border-none">
               <Menu.Label>
                 <Text className="font-bold" c="white" component="button" onClick={logout}>
-                  Log out @{userData?.username}
+                  Log out @{user?.username}
                 </Text>
               </Menu.Label>
             </Menu.Dropdown>

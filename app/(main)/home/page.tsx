@@ -10,6 +10,7 @@ const HomePage = () => {
   const handleTabChange = (tab: TabOption) => {
     setActiveTab(tab);
   };
+
   return (
     <div className="w-[600px] border-l border-r border-separator">
       <HomeTab activeTab={activeTab} onTabChange={handleTabChange} />

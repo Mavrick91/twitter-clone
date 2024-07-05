@@ -1,6 +1,5 @@
 import WelcomeTwitter from '@/assets/svg/welcomeTwitter';
 import LoginForm from '@/app/(auth)/login/_components/LoginForm';
-import SignUpForm from '@/app/(auth)/login/_components/SignUpForm';
 
 const LoginPage = () => (
   <main className="h-full flex bg-black">
@@ -15,14 +14,6 @@ const LoginPage = () => (
         <span className="font-bold text-3xl">Join today</span>
         <div className="mt-8 max-w-72">
           <LoginForm />
-
-          <div className="flex items-center my-2">
-            <div className="h-px border-b border-[#2f3336] grow" />
-            <div className="px-1">or</div>
-            <div className="h-px border-b border-[#2f3336] grow" />
-          </div>
-
-          <SignUpForm />
         </div>
       </div>
     </div>
