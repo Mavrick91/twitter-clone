@@ -34,7 +34,12 @@ const HomeTab: React.FC<HomeTabProps> = ({ activeTab, onTabChange }) => {
   return (
     <div className="border-b border-separator h-14 w-full flex">
       {tabs.map((tab) => (
-        <button className="flex-1 flex-center" key={tab.key} onClick={() => onTabChange(tab.key)}>
+        <button
+          type="button"
+          className="flex-1 flex-center"
+          key={tab.key}
+          onClick={() => onTabChange(tab.key)}
+        >
           <TabItem label={tab.label} isActive={activeTab === tab.key} />
         </button>
       ))}
