@@ -16,11 +16,7 @@ const SideNavigation = () => {
   const pathname = usePathname();
   const { logout, user } = useUserInfo();
 
-  const navItems = [
-    { Icon: GoHome, label: 'Home', path: '/home' },
-    { Icon: BiSearchAlt2, label: 'Explore', path: '/explore' },
-    { Icon: BiSearchAlt2, label: 'Profile', path: `/profile/${user?.username}` },
-  ];
+  const navItems = [{ Icon: GoHome, label: 'Home', path: '/home' }];
 
   return (
     <div className="w-[275px] flex flex-col shrink-0">
