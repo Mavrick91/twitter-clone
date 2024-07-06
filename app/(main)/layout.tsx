@@ -7,7 +7,7 @@ type MainLayoutProps = {
 const MainLayout = ({ children }: MainLayoutProps) => (
   <div className="w-[1255px] mx-auto flex h-screen">
     <SideNavigation />
-    {children}
+    <div className="border-l border-r border-separator">{children}</div>
   </div>
 );
 

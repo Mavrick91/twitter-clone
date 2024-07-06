@@ -12,14 +12,15 @@ import WelcomeTwitter from '@/assets/svg/welcomeTwitter';
 import { useUserInfo } from '@/Providers/UserInfoProvider';
 import UserAvatar from '@/components/UserAvatar';
 
-const navItems = [
-  { Icon: GoHome, label: 'Home', path: '/home' },
-  { Icon: BiSearchAlt2, label: 'Explore', path: '/explore' },
-];
-
 const SideNavigation = () => {
   const pathname = usePathname();
   const { logout, user } = useUserInfo();
+
+  const navItems = [
+    { Icon: GoHome, label: 'Home', path: '/home' },
+    { Icon: BiSearchAlt2, label: 'Explore', path: '/explore' },
+    { Icon: BiSearchAlt2, label: 'Profile', path: `/profile/${user?.username}` },
+  ];
 
   return (
     <div className="w-[275px] flex flex-col shrink-0">

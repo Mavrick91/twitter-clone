@@ -12,7 +12,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="w-[600px] border-l border-r border-separator">
+    <div className="w-[600px]">
       <HomeTab activeTab={activeTab} onTabChange={handleTabChange} />
       <NewPostForm />
     </div>
